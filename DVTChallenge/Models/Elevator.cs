@@ -20,6 +20,7 @@ namespace DVTChallenge.Models
             _name = name;
             _currentFloor = currentFloor;
             _weightLimit = weightLimit;
+            _direction = ElevatorEnums.Movement.stationary;
         }
         public string Name { 
             get { return _name; }

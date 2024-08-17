@@ -10,10 +10,11 @@ namespace DVTChallenge.Abstraction
 {
     public interface IElevatorOperator
     {
-        public void RequestElevator(int currentFloor, List<Elevator> elevators, ElevatorEnums.Movement direction);
+        public void InitialiseElevatorRequest(ElevatorEnums.Movement currentDirection);
+        public void RequestElevator(int currentFloor,  ElevatorEnums.Movement direction);
         public void RequestElevator(Elevator elevator);
 
-        public void CheckElevatorStatus(List<Elevator> elevators);
+        public void CheckElevatorStatus();
 
     }
 }

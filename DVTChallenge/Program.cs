@@ -31,8 +31,8 @@ try
         floors.Add(floor);
     }
 
-    //Call The elevator
-    IElevatorOperator elevOperator = new ElevatorOperator();
+
+    IElevatorOperator elevOperator = new ElevatorOperator(floors);
     bool exit = false;
     for (; ; )
     {
@@ -46,54 +46,36 @@ try
         var key = Console.ReadKey(false).Key;
         Console.WriteLine("");
 
-      Movement currentDirection = ElevatorEnums.Movement.stationary;
+      Movement chosenDirection = ElevatorEnums.Movement.stationary;
         switch (key)
         {
             case ConsoleKey.UpArrow:
-                currentDirection=ElevatorEnums.Movement.Up;
+                chosenDirection = ElevatorEnums.Movement.Up;
                 break;
             case ConsoleKey.DownArrow:
-                currentDirection = ElevatorEnums.Movement.Down;
+                chosenDirection = ElevatorEnums.Movement.Down;
                 break;
             case ConsoleKey.S:
                 Console.WriteLine("");
                 Console.WriteLine("---------------Elevetor Details--------------");
-                elevOperator.CheckElevatorStatus(elevators);
+                elevOperator.CheckElevatorStatus();
                 continue;
             case   ConsoleKey.X:
                 exit=true;
                 break;
+            default:
+                Console.WriteLine("");
+                Console.WriteLine("--------------Try Again--------------------");
+                continue;
         }
 
         if (exit) break;
 
-        Console.WriteLine("Which floor are you requesting from?");
-        int floorNumber = Convert.ToInt32(Console.ReadLine());
-        Console.WriteLine("How many people are waiting at this floor?");
-        int numberOfPeopleWaiting = Convert.ToInt32(Console.ReadLine());
-
-        var floor = floors.FirstOrDefault(f => f.Number == floorNumber);
-        if (floor == null)
-        {
-            Console.WriteLine("Please provide correct floor number starting from ground floor (Zero).Which floor are you calling from?");
-            floorNumber = Convert.ToInt32(Console.ReadLine());
-        }
-        //check if elevator is currently available on this floor
-        var elevator = floor.Elevators.Where(p => p.CurrentFloor == floor.Number).FirstOrDefault();
-        if (elevator == null)
-        {
-            //is not avaliable on current floor,then find the nearest
-            elevOperator.RequestElevator(floorNumber, elevators, currentDirection);
-        }
-        else
-        {
-            //If there is an elevator on the same floor where the request is being made
-            elevator.Direction = currentDirection;
-            elevOperator.RequestElevator(elevator);
-        }
+        //Call The elevator
+        elevOperator.InitialiseElevatorRequest(chosenDirection);
 
     }
-    Console.WriteLine(" ---BYE BYE---");
+    Console.WriteLine(" ------------------BYE BYE!---------------------------");
     Console.ReadKey();
 }
 catch (Exception e)

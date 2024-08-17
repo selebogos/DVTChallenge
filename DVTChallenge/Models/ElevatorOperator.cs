@@ -12,18 +12,75 @@ namespace DVTChallenge.Models
 {
     public class ElevatorOperator : IElevatorOperator
     {
-        public void CheckElevatorStatus(List<Elevator> elevators)
+        private List<Floor> _floorData;
+        public ElevatorOperator(List<Floor> floorData)
         {
+            _floorData = floorData;
+        }
+        public void CheckElevatorStatus()
+        {
+            var elevators = _floorData.FirstOrDefault().Elevators;
             elevators.ForEach(x => x.GetStatus());
+        }
+
+        public void InitialiseElevatorRequest(ElevatorEnums.Movement currentDirection)
+        {
+            Console.WriteLine("Which floor are you requesting from?");
+            int floorNumber = Convert.ToInt32(Console.ReadLine());
+            Console.WriteLine("How many people are waiting at this floor?");
+            int numberOfPeopleWaiting = Convert.ToInt32(Console.ReadLine());
+            Console.WriteLine("");
+            int weightLimit = _floorData.FirstOrDefault().Elevators.FirstOrDefault().WeightLimit;
+
+            if (numberOfPeopleWaiting > weightLimit) 
+            {
+                Console.WriteLine("----Sorry Weight Limit Exceeded------");
+                Console.WriteLine("");
+                Console.WriteLine("--------------Try Again--------------");
+                Console.WriteLine("How many people are waiting at this floor?");
+                 numberOfPeopleWaiting = Convert.ToInt32(Console.ReadLine());
+                Console.WriteLine("");
+                return;
+            }
+
+            var floor = _floorData.FirstOrDefault(f => f.Number == floorNumber);
+            if (floor == null)
+            {
+                Console.WriteLine("Please provide correct floor number starting from ground floor (Zero).Which floor are you calling from?");
+                floorNumber = Convert.ToInt32(Console.ReadLine());
+                Console.WriteLine("");
+            }
+            //check if elevator is currently available on this floor
+            var elevator = floor.Elevators.Where(p => p.CurrentFloor == floor.Number).FirstOrDefault();
+            if (elevator == null)
+            {
+                //is not avaliable on current floor,then find the nearest
+                RequestElevator(floorNumber, currentDirection);
+            }
+            else
+            {
+                //If there is an elevator on the same floor where the request is being made
+                elevator.Direction = currentDirection;
+                RequestElevator(elevator);
+            }
         }
 
         public void RequestElevator(Elevator elevator)
         {
             try
             {
-                DoorOperations(elevator.Name);
+                
+                    DoorOperations(elevator.Name);
                 Console.WriteLine("Which floor are you going to?");
                 int destinationFloor = Convert.ToInt32(Console.ReadLine());
+                Console.WriteLine("");
+                if (destinationFloor < 0 || destinationFloor > _floorData.Count)
+                {
+                    Console.WriteLine("----Sorry this floor is NOT available------");
+                    Console.WriteLine("");
+                    Console.WriteLine("--------------Try Again--------------");
+                    return;
+                }
                 elevator.DestinationFloor = destinationFloor;
 
                 elevator.Move();
@@ -40,13 +97,17 @@ namespace DVTChallenge.Models
             }
         }
 
-        public void RequestElevator(int currentFloor, List<Elevator> elevators, ElevatorEnums.Movement direction)
+        public void RequestElevator(int currentFloor,  ElevatorEnums.Movement direction)
         {
-            Thread.Sleep(3000);
+            
+            var elevators = _floorData.FirstOrDefault().Elevators;
+
             int NearestAvailableElevatorFloor = GetNearestAvailableElevator(currentFloor, elevators);
             var elevator = elevators.Where(p => p.CurrentFloor == NearestAvailableElevatorFloor).FirstOrDefault();
             ElevatorApproaching(elevator.Name, NearestAvailableElevatorFloor);
+
             elevator.Direction = direction;
+
             RequestElevator(elevator);
         }
 
@@ -58,6 +119,7 @@ namespace DVTChallenge.Models
         private void ElevatorApproaching(string elevatorName,int floor)
         {
             Console.WriteLine($"Please wait,The elevator  {elevatorName} is on its way from the floor - {floor}");
+            Thread.Sleep(3000);
         }
 
         private int GetNearestAvailableElevator(int floor, List<Elevator> elevators)
