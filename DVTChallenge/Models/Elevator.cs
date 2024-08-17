@@ -11,11 +11,11 @@ namespace DVTChallenge.Models
     public  class Elevator: IElevator
     {
         private string _name;
-        private string _currentFloor;
+        private int _currentFloor;
         private ElevatorEnums.Movement  _direction;
         private int _weightLimit;
 
-        public Elevator(string name,string currentFloor, int weightLimit)
+        public Elevator(string name,int currentFloor, int weightLimit)
         {
             _name = name;
             _currentFloor = currentFloor;
@@ -24,17 +24,17 @@ namespace DVTChallenge.Models
         public string Name { 
             get { return _name; }
         }
-        public int WaitLimit
+        public int WeightLimit
         {
             get { return _weightLimit; }
         }
 
-        public string CurrentFloor 
+        public int CurrentFloor 
         {
             get { return _currentFloor; }
             set { _currentFloor = value; }
         }
-
+        public int DestinationFloor { get; set; }
         public ElevatorEnums.Movement Direction
         {
             get {
@@ -46,21 +46,21 @@ namespace DVTChallenge.Models
 
         public int CurrentNoOfPeopleCarrying { get; set; }
 
-        public string GetStatus()
+        public void GetStatus()
         {
-            throw new NotImplementedException();
+            Console.WriteLine($"Elevator - {_name}");
+            Console.WriteLine($" Is at Floor - {_currentFloor}");
+            Console.WriteLine($" Has weightLimit Of - {_weightLimit}");
+            Console.WriteLine($" Its Direction is - {_name}");
         }
 
-        public void Command(int destinationFloor)
+        public void Move()
         {
-            throw new NotImplementedException();
-        }
+            Console.WriteLine($"The elevator  {_name}  - is at floor {CurrentFloor} and is departing to {DestinationFloor}");
+            Thread.Sleep( 5000 );
+            Console.WriteLine($"The elevator  {_name}  - has arrived at {DestinationFloor}");
 
-        public void DoorOperation()
-        {
-            throw new NotImplementedException();
         }
-
     }
 
 }

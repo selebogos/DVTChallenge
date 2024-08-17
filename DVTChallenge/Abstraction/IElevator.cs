@@ -9,9 +9,9 @@ namespace DVTChallenge.Abstraction
     public interface IElevator
     {
         public int CurrentNoOfPeopleCarrying { get; set; }
-        public string GetStatus();
-        public void DoorOperation();
-        public void Command(int destinationFloor);
+        public void GetStatus();
+        public void Move();
+
 
     }
 }

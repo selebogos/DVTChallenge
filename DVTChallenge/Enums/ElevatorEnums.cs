@@ -17,7 +17,7 @@ namespace DVTChallenge.Enums
             [Description("Elevator going down")]
             Down =2,
             [Description("Elevator is parked")]
-           Parked = 2
+            stationary = 3
         }
 
         public enum DoorOperation {

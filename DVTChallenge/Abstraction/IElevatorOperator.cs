@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DVTChallenge.Enums;
+using DVTChallenge.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +10,10 @@ namespace DVTChallenge.Abstraction
 {
     public interface IElevatorOperator
     {
-        public void CallElevator();
-       
+        public void RequestElevator(int currentFloor, List<Elevator> elevators, ElevatorEnums.Movement direction);
+        public void RequestElevator(Elevator elevator);
+
+        public void CheckElevatorStatus(List<Elevator> elevators);
+
     }
 }
