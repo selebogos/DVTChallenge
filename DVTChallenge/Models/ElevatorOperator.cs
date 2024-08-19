@@ -1,6 +1,6 @@
 ﻿using DVTChallenge.Abstraction;
 using DVTChallenge.Enums;
-
+using System.ComponentModel.Design;
 using static DVTChallenge.Enums.ElevatorEnums;
 
 namespace DVTChallenge.Models
@@ -43,7 +43,12 @@ namespace DVTChallenge.Models
             if (numberOfPeopleWaiting == -1) return;
 
             var elevator = GetElevatorAtCurrentFloorOrNearest(currentFloor);
-            if (elevator == null || numberOfPeopleWaiting > elevator.WeightLimit)
+            if (elevator == null)
+            {
+                DisplayTryAgainMessage();
+                return;
+            }
+            else if (numberOfPeopleWaiting > elevator.WeightLimit)
             {
                 Console.WriteLine("----Sorry Weight Limit Exceeded------");
                 DisplayTryAgainMessage();
@@ -88,7 +93,8 @@ namespace DVTChallenge.Models
 
                 elevator.Direction = DetermineDirection(elevator.CurrentFloor, destinationFloor);
                 elevator.DestinationFloor = destinationFloor;
-                elevator.Move();
+
+                elevator.Move(); //up OR down
 
                 elevator.CurrentFloor = destinationFloor;
                 elevator.DestinationFloor = -1;
@@ -130,6 +136,7 @@ namespace DVTChallenge.Models
         {
             Console.WriteLine($"The elevator {elevatorName} - {ElevatorEnums.GetEnumDescription(DoorOperation.Open)}");
             Console.WriteLine($"The elevator {elevatorName} - {ElevatorEnums.GetEnumDescription(DoorOperation.Close)}");
+            Console.WriteLine("");
         }
 
         private void AnnounceElevatorApproach(string elevatorName, int floor)
