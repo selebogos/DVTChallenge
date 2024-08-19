@@ -10,6 +10,12 @@ namespace DVTChallenge.Enums
 {
     public class ElevatorEnums
     {
+        public enum ElevatorType {
+            [Description("Service Elevator")]
+            ServiceElevator = 1,
+            [Description("Freight Elevator")]
+            FreightElevator = 2
+        }
 
         public enum Movement {
             [Description("Elevator going up")]

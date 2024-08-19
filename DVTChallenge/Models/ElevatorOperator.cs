@@ -1,95 +1,99 @@
 ﻿using DVTChallenge.Abstraction;
 using DVTChallenge.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+
 using static DVTChallenge.Enums.ElevatorEnums;
 
 namespace DVTChallenge.Models
 {
     public class ElevatorOperator : IElevatorOperator
     {
-        private List<Floor> _floorData;
+        private readonly List<Floor> _floorData;
+
         public ElevatorOperator(List<Floor> floorData)
         {
-            _floorData = floorData;
+            _floorData = floorData ?? throw new ArgumentNullException(nameof(floorData));
         }
+
         public void CheckElevatorStatus()
         {
-            var elevators = _floorData.FirstOrDefault().Elevators;
-            elevators.ForEach(x => x.GetStatus());
+            var elevators = _floorData.First().Elevators;
+            elevators.ForEach(elevator => elevator.GetStatus());
+        }
+
+        public int GetNumberOfPeopleWaitingOnFloor()
+        {
+            Console.WriteLine("How many people are waiting at this floor?");
+            if (int.TryParse(Console.ReadLine(), out int numberOfPeopleWaiting))
+            {
+                return numberOfPeopleWaiting;
+            }
+            else
+            {
+                DisplayTryAgainMessage();
+                return -1;
+            }
         }
 
         public void InitialiseElevatorRequest(ElevatorEnums.Movement currentDirection)
         {
-            Console.WriteLine("Which floor are you requesting from?");
-            int floorNumber = Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine("How many people are waiting at this floor?");
-            int numberOfPeopleWaiting = Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine("");
-            int weightLimit = _floorData.FirstOrDefault().Elevators.FirstOrDefault().WeightLimit;
+            int currentFloor = GetRequestingFloor();
+            if (currentFloor == -1) return;
 
-            if (numberOfPeopleWaiting > weightLimit) 
+            int numberOfPeopleWaiting = GetNumberOfPeopleWaitingOnFloor();
+            if (numberOfPeopleWaiting == -1) return;
+
+            var elevator = GetElevatorAtCurrentFloorOrNearest(currentFloor);
+            if (elevator == null || numberOfPeopleWaiting > elevator.WeightLimit)
             {
                 Console.WriteLine("----Sorry Weight Limit Exceeded------");
-                Console.WriteLine("");
-                Console.WriteLine("--------------Try Again--------------");
-                Console.WriteLine("How many people are waiting at this floor?");
-                 numberOfPeopleWaiting = Convert.ToInt32(Console.ReadLine());
-                Console.WriteLine("");
+                DisplayTryAgainMessage();
                 return;
             }
 
-            var floor = _floorData.FirstOrDefault(f => f.Number == floorNumber);
-            if (floor == null)
+            elevator.Direction = currentDirection;
+            RequestElevator(elevator);
+        }
+
+        public int GetDestinationFloor()
+        {
+            Console.WriteLine("Which floor are you going to?");
+            if (int.TryParse(Console.ReadLine(), out int destinationFloor) && IsFloorValid(destinationFloor))
             {
-                Console.WriteLine("Please provide correct floor number starting from ground floor (Zero).Which floor are you calling from?");
-                floorNumber = Convert.ToInt32(Console.ReadLine());
-                Console.WriteLine("");
-            }
-            //check if elevator is currently available on this floor
-            var elevator = floor.Elevators.Where(p => p.CurrentFloor == floor.Number).FirstOrDefault();
-            if (elevator == null)
-            {
-                //is not avaliable on current floor,then find the nearest
-                RequestElevator(floorNumber, currentDirection);
+                return destinationFloor;
             }
             else
             {
-                //If there is an elevator on the same floor where the request is being made
-                elevator.Direction = currentDirection;
-                RequestElevator(elevator);
+                Console.WriteLine("----Sorry this floor is NOT available------");
+                DisplayTryAgainMessage();
+                return -1;
             }
         }
 
         public void RequestElevator(Elevator elevator)
         {
+            if (elevator == null) throw new ArgumentNullException(nameof(elevator));
+
             try
             {
-                
-                    DoorOperations(elevator.Name);
-                Console.WriteLine("Which floor are you going to?");
-                int destinationFloor = Convert.ToInt32(Console.ReadLine());
-                Console.WriteLine("");
-                if (destinationFloor < 0 || destinationFloor > _floorData.Count)
-                {
-                    Console.WriteLine("----Sorry this floor is NOT available------");
-                    Console.WriteLine("");
-                    Console.WriteLine("--------------Try Again--------------");
-                    return;
-                }
-                elevator.DestinationFloor = destinationFloor;
+                OperateDoors(elevator.Name);
+                int destinationFloor = GetDestinationFloor();
+                if (destinationFloor == -1) return;
 
+                if (destinationFloor == elevator.CurrentFloor)
+                {
+                    Console.WriteLine("----Please choose a different floor than the one you are currently on------");
+                    destinationFloor = GetDestinationFloor();
+                    if (destinationFloor == -1) return;
+                }
+
+                elevator.Direction = DetermineDirection(elevator.CurrentFloor, destinationFloor);
+                elevator.DestinationFloor = destinationFloor;
                 elevator.Move();
 
                 elevator.CurrentFloor = destinationFloor;
                 elevator.DestinationFloor = -1;
-                elevator.Direction = ElevatorEnums.Movement.stationary;
 
-                DoorOperations(elevator.Name);
+                OperateDoors(elevator.Name);
             }
             catch (Exception ex)
             {
@@ -97,33 +101,52 @@ namespace DVTChallenge.Models
             }
         }
 
-        public void RequestElevator(int currentFloor,  ElevatorEnums.Movement direction)
+        public void RequestElevator(int currentFloor, ElevatorEnums.Movement direction)
         {
-            
-            var elevators = _floorData.FirstOrDefault().Elevators;
+            var elevator = GetElevatorAtCurrentFloorOrNearest(currentFloor);
+            if (elevator == null) return;
 
-            int NearestAvailableElevatorFloor = GetNearestAvailableElevator(currentFloor, elevators);
-            var elevator = elevators.Where(p => p.CurrentFloor == NearestAvailableElevatorFloor).FirstOrDefault();
-            ElevatorApproaching(elevator.Name, NearestAvailableElevatorFloor);
-
+            AnnounceElevatorApproach(elevator.Name, elevator.CurrentFloor);
             elevator.Direction = direction;
 
             RequestElevator(elevator);
         }
 
-        private void DoorOperations(string elevatorName)
+        public int GetRequestingFloor()
         {
-            Console.WriteLine($"The elevator  {elevatorName}  - {ElevatorEnums.GetEnumDescription(DoorOperation.Open)}");
-            Console.WriteLine($"The elevator  {elevatorName}  - {ElevatorEnums.GetEnumDescription(DoorOperation.Close)}");
+            Console.WriteLine("Which floor are you requesting from?");
+            if (int.TryParse(Console.ReadLine(), out int floorNumber) && IsFloorValid(floorNumber))
+            {
+                return floorNumber;
+            }
+            else
+            {
+                DisplayTryAgainMessage();
+                return -1;
+            }
         }
-        private void ElevatorApproaching(string elevatorName,int floor)
+
+        private void OperateDoors(string elevatorName)
         {
-            Console.WriteLine($"Please wait,The elevator  {elevatorName} is on its way from the floor - {floor}");
+            Console.WriteLine($"The elevator {elevatorName} - {ElevatorEnums.GetEnumDescription(DoorOperation.Open)}");
+            Console.WriteLine($"The elevator {elevatorName} - {ElevatorEnums.GetEnumDescription(DoorOperation.Close)}");
+        }
+
+        private void AnnounceElevatorApproach(string elevatorName, int floor)
+        {
+            Console.WriteLine($"Please wait, the elevator {elevatorName} is on its way from floor {floor}");
             Thread.Sleep(3000);
         }
 
-        private int GetNearestAvailableElevator(int floor, List<Elevator> elevators)
+        private Elevator GetElevatorAtCurrentFloorOrNearest(int floor)
         {
+            var elevators = _floorData.First().Elevators;
+            return elevators.FirstOrDefault(e => e.CurrentFloor == floor) ?? GetNearestElevator(floor, elevators);
+        }
+
+        private Elevator GetNearestElevator(int floor, List<Elevator> elevators)
+        {
+         
             Elevator closest = elevators[0];
             int difference = Math.Abs(floor - closest.CurrentFloor);
             for (int i = 1; i < elevators.Count; i++)
@@ -135,15 +158,30 @@ namespace DVTChallenge.Models
                     difference = currentDifference;
                 }
             }
-            return closest.CurrentFloor;
-
-            //0r 
-            //    List<int> list = new List<int> { 4, 2, 10, 7 };
-            //    int number = 5;
-            //    // find closest to number
-            //    int closest = list.OrderBy(item => Math.Abs(number - item)).First();
-            //}
+            return closest;
         }
 
+        private bool IsFloorValid(int floorNumber)
+        {
+            return floorNumber >= 0 && floorNumber <= _floorData.Count;
+        }
+
+        private ElevatorEnums.Movement DetermineDirection(int currentFloor, int destinationFloor)
+        {
+            if (destinationFloor > currentFloor) return ElevatorEnums.Movement.Up;
+            if (destinationFloor < currentFloor) return ElevatorEnums.Movement.Down;
+            return ElevatorEnums.Movement.stationary;
+        }
+
+        private void DisplayTryAgainMessage()
+        {
+            Console.WriteLine("-------A valid number is required------------------");
+            Console.WriteLine("--------------Try Again--------------------");
+        }
+
+        public Movement GetRequestingDirection()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

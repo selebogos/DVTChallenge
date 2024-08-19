@@ -13,7 +13,11 @@ namespace DVTChallenge.Abstraction
         public void InitialiseElevatorRequest(ElevatorEnums.Movement currentDirection);
         public void RequestElevator(int currentFloor,  ElevatorEnums.Movement direction);
         public void RequestElevator(Elevator elevator);
+        public int GetRequestingFloor();
 
+        public int GetDestinationFloor();
+        public ElevatorEnums.Movement GetRequestingDirection();
+        public int GetNumberOfPeopleWaitingOnFloor();
         public void CheckElevatorStatus();
 
     }
