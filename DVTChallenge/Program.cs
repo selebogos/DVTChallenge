@@ -3,9 +3,11 @@ using DVTChallenge.Enums;
 using DVTChallenge.Models;
 using static DVTChallenge.Enums.ElevatorEnums;
 
-class Program
+ElevatorApplication.Start();
+public class ElevatorApplication
 {
-    static void Main(string[] args)
+
+    public static void Start()
     {
         try
         {
@@ -15,7 +17,7 @@ class Program
             var elevators = InitializeElevators(numberOfElevators);
             var floors = InitializeFloors(numberOfFloors, elevators);
 
-            IElevatorOperator elevatorOperator = new ElevatorOperator(floors);
+            IElevatorSystem elevatorOperator = new ElevatorSystem(floors);
             RunElevatorSystem(elevatorOperator);
 
             Console.WriteLine(" ------------------BYE BYE!---------------------------");
@@ -62,7 +64,7 @@ class Program
         return floors;
     }
 
-    static void RunElevatorSystem(IElevatorOperator elevatorOperator)
+    static void RunElevatorSystem(IElevatorSystem elevatorOperator)
     {
         bool exit = false;
         while (!exit)

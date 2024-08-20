@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DVTChallenge.Abstraction
 {
-    public interface IElevatorOperator
+    public interface IElevatorSystem
     {
         public void InitialiseElevatorRequest(ElevatorEnums.Movement currentDirection);
         public void RequestElevator(int currentFloor,  ElevatorEnums.Movement direction);
