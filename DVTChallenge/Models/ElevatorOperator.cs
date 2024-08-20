@@ -8,6 +8,7 @@ namespace DVTChallenge.Models
     public class ElevatorOperator : IElevatorOperator
     {
         private readonly List<Floor> _floorData;
+        public int _userCurrentFloor { get; set; }
 
         public ElevatorOperator(List<Floor> floorData)
         {
@@ -36,13 +37,13 @@ namespace DVTChallenge.Models
 
         public void InitialiseElevatorRequest(ElevatorEnums.Movement currentDirection)
         {
-            int currentFloor = GetRequestingFloor();
-            if (currentFloor == -1) return;
+             _userCurrentFloor = GetRequestingFloor();
+            if (_userCurrentFloor == -1) return;
 
             int numberOfPeopleWaiting = GetNumberOfPeopleWaitingOnFloor();
             if (numberOfPeopleWaiting == -1) return;
 
-            var elevator = GetElevatorAtCurrentFloorOrNearest(currentFloor);
+            var elevator = GetElevatorAtCurrentFloorOrNearest(_userCurrentFloor);
             if (elevator == null)
             {
                 DisplayTryAgainMessage();
@@ -80,7 +81,7 @@ namespace DVTChallenge.Models
 
             try
             {
-                OperateDoors(elevator.Name);
+               
                 int destinationFloor = GetDestinationFloor();
                 if (destinationFloor == -1) return;
 
@@ -91,9 +92,16 @@ namespace DVTChallenge.Models
                     if (destinationFloor == -1) return;
                 }
 
-                elevator.Direction = DetermineDirection(elevator.CurrentFloor, destinationFloor);
-                elevator.DestinationFloor = destinationFloor;
+               
+                elevator.Direction = DetermineDirection(elevator.CurrentFloor, _userCurrentFloor);
+                elevator.DestinationFloor = _userCurrentFloor;
+                elevator.Move(); //up OR down
 
+                OperateDoors(elevator.Name);
+
+                elevator.CurrentFloor = _userCurrentFloor;
+                elevator.DestinationFloor = destinationFloor;
+                elevator.Direction = DetermineDirection(elevator.CurrentFloor, destinationFloor);
                 elevator.Move(); //up OR down
 
                 elevator.CurrentFloor = destinationFloor;
@@ -167,7 +175,9 @@ namespace DVTChallenge.Models
             }
             return closest;
         }
-
+        private void MoveElevator() { 
+        
+        }
         private bool IsFloorValid(int floorNumber)
         {
             return floorNumber >= 0 && floorNumber <= _floorData.Count;

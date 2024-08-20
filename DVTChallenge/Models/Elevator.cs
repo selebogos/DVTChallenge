@@ -34,8 +34,8 @@ public class Elevator : IElevator
         Console.WriteLine($"The elevator {Name} is at floor {CurrentFloor} and is departing to {DestinationFloor}, direction - {Direction}");
         Thread.Sleep(5000);
 
-        Direction = ElevatorEnums.Movement.stationary;
-        Console.WriteLine($"The elevator {Name} has arrived at floor {DestinationFloor}, direction - {Direction}");
+      //  Direction = ElevatorEnums.Movement.stationary;
+        //Console.WriteLine($"The elevator {Name} has arrived at floor {DestinationFloor}, direction - {Direction}");
         Console.WriteLine();
     }
 }
