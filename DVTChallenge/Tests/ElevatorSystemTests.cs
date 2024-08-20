@@ -92,7 +92,6 @@ namespace DVTChallenge.Tests
 
             // Assert
             // Since the method exits early, there's no need for specific assertions.
-            // Just verifying that it does not throw exceptions and handles the case properly.
         }
 
         [Test]
